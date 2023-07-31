@@ -6,7 +6,11 @@
 
 static OSDynLoad_Module sModuleHandle = nullptr;
 
-static ModpackLoaderStatus (*sMPLGetversion)(ModpackLoaderVersion *) = nullptr;
+static ModpackLoaderStatus (*sMPLGetversion)(ModpackLoaderVersion *)                       = nullptr;
+static ModpackLoaderStatus (*sMPLParseModpackByPath)(const char *, MPLModpackHandle *)     = nullptr;
+static ModpackLoaderStatus (*sMPLParseModpackFromCurrentlyRunningWUHB)(MPLModpackHandle *) = nullptr;
+static ModpackLoaderStatus (*sMPLCheckIfLaunchable)(MPLModpackHandle, bool *)              = nullptr;
+static ModpackLoaderStatus (*sMPLLaunchModpack)(MPLModpackHandle, bool *)                  = nullptr;
 
 static ModpackLoaderVersion sModpackLoaderVersion = MODPACK_LOADER_MODULE_VERSION_ERROR;
 
@@ -49,6 +53,26 @@ ModpackLoaderStatus ModpackLoader_InitLibrary() {
         return MODPACK_LOADER_RESULT_UNSUPPORTED_VERSION;
     }
 
+    if (OSDynLoad_FindExport(sModuleHandle, OS_DYNLOAD_EXPORT_FUNC, "MPLParseModpackFromCurrentlyRunningWUHB", (void **) &sMPLParseModpackFromCurrentlyRunningWUHB) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE_WARN("FindExport MPLParseModpackFromCurrentlyRunningWUHB failed.");
+        sMPLParseModpackFromCurrentlyRunningWUHB = nullptr;
+    }
+
+    if (OSDynLoad_FindExport(sModuleHandle, OS_DYNLOAD_EXPORT_FUNC, "MPLParseModpackByPath", (void **) &sMPLParseModpackByPath) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE_WARN("FindExport MPLParseModpackByPath failed.");
+        sMPLParseModpackByPath = nullptr;
+    }
+
+    if (OSDynLoad_FindExport(sModuleHandle, OS_DYNLOAD_EXPORT_FUNC, "MPLCheckIfLaunchable", (void **) &sMPLCheckIfLaunchable) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE_WARN("FindExport MPLCheckIfLaunchable failed.");
+        sMPLCheckIfLaunchable = nullptr;
+    }
+
+    if (OSDynLoad_FindExport(sModuleHandle, OS_DYNLOAD_EXPORT_FUNC, "MPLLaunchModpack", (void **) &sMPLLaunchModpack) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE_WARN("FindExport MPLLaunchModpack failed.");
+        sMPLCheckIfLaunchable = nullptr;
+    }
+
     return MODPACK_LOADER_RESULT_SUCCESS;
 }
 
@@ -70,4 +94,48 @@ ModpackLoaderStatus ModpackLoader_GetVersion(ModpackLoaderVersion *outVariable) 
     }
 
     return reinterpret_cast<decltype(&ModpackLoader_GetVersion)>(sMPLGetversion)(outVariable);
+}
+
+ModpackLoaderStatus ModpackLoader_ParseModpackFromCurrentlyRunningWUHB(MPLModpackHandle *outHandle) {
+    if (sModpackLoaderVersion == MODPACK_LOADER_MODULE_VERSION_ERROR) {
+        return MODPACK_LOADER_RESULT_LIB_UNINITIALIZED;
+    }
+    if (sMPLParseModpackFromCurrentlyRunningWUHB == nullptr || sModpackLoaderVersion < 1) {
+        return MODPACK_LOADER_RESULT_UNSUPPORTED_COMMAND;
+    }
+
+    return reinterpret_cast<decltype(&ModpackLoader_ParseModpackFromCurrentlyRunningWUHB)>(sMPLParseModpackFromCurrentlyRunningWUHB)(outHandle);
+}
+
+ModpackLoaderStatus ModpackLoader_ParseModpackByPath(const char *path, MPLModpackHandle *outHandle) {
+    if (sModpackLoaderVersion == MODPACK_LOADER_MODULE_VERSION_ERROR) {
+        return MODPACK_LOADER_RESULT_LIB_UNINITIALIZED;
+    }
+    if (sMPLParseModpackByPath == nullptr || sModpackLoaderVersion < 1) {
+        return MODPACK_LOADER_RESULT_UNSUPPORTED_COMMAND;
+    }
+
+    return reinterpret_cast<decltype(&ModpackLoader_ParseModpackByPath)>(sMPLParseModpackByPath)(path, outHandle);
+}
+
+ModpackLoaderStatus ModpackLoader_CheckIfLaunchable(MPLModpackHandle handle, bool *readyToLaunchOut) {
+    if (sModpackLoaderVersion == MODPACK_LOADER_MODULE_VERSION_ERROR) {
+        return MODPACK_LOADER_RESULT_LIB_UNINITIALIZED;
+    }
+    if (sMPLCheckIfLaunchable == nullptr || sModpackLoaderVersion < 1) {
+        return MODPACK_LOADER_RESULT_UNSUPPORTED_COMMAND;
+    }
+
+    return reinterpret_cast<decltype(&ModpackLoader_CheckIfLaunchable)>(sMPLCheckIfLaunchable)(handle, readyToLaunchOut);
+}
+
+ModpackLoaderStatus ModpackLoader_LaunchModpack(MPLModpackHandle handle, bool *launchedOut) {
+    if (sModpackLoaderVersion == MODPACK_LOADER_MODULE_VERSION_ERROR) {
+        return MODPACK_LOADER_RESULT_LIB_UNINITIALIZED;
+    }
+    if (sMPLLaunchModpack == nullptr || sModpackLoaderVersion < 1) {
+        return MODPACK_LOADER_RESULT_UNSUPPORTED_COMMAND;
+    }
+
+    return reinterpret_cast<decltype(&ModpackLoader_LaunchModpack)>(sMPLLaunchModpack)(handle, launchedOut);
 }

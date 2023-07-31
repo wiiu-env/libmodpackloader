@@ -19,6 +19,7 @@ typedef enum ModpackLoaderStatus {
     MODPACK_LOADER_RESULT_UNKNOWN_ERROR         = -0x1000,
 } ModpackLoaderStatus;
 
+typedef uint32_t MPLModpackHandle;
 typedef uint32_t ModpackLoaderVersion;
 
 #define MODPACK_LOADER_MODULE_VERSION_ERROR 0xFFFFFFFF
@@ -49,6 +50,31 @@ ModpackLoaderStatus ModpackLoader_DeInitLibrary();
  *         MODPACK_LOADER_RESULT_UNKNOWN_ERROR:            Retrieving the module version failed.
  */
 ModpackLoaderStatus ModpackLoader_GetVersion(ModpackLoaderVersion *outVersion);
+
+/**
+ *
+ * @param path. Path to a .wuhb with a valid /vol/content/modpack.ini. This path is supposed to be related to the root of the SD card.
+ * @param outHandle
+ * @return
+ */
+ModpackLoaderStatus ModpackLoader_ParseModpackByPath(const char *path, MPLModpackHandle *outHandle);
+
+/**
+ * !!! Calling this function unmounts the currently running WUHB !!!
+ * @param outHandle
+ * @return
+ */
+ModpackLoaderStatus ModpackLoader_ParseModpackFromCurrentlyRunningWUHB(MPLModpackHandle *outHandle);
+
+ModpackLoaderStatus ModpackLoader_CheckIfLaunchable(MPLModpackHandle handle, bool *readyToLaunchOut);
+
+/**
+ *
+ * @param handle
+ * @param launchedOut
+ * @return
+ */
+ModpackLoaderStatus ModpackLoader_LaunchModpack(MPLModpackHandle handle, bool *launchedOut);
 
 #ifdef __cplusplus
 } // extern "C"
