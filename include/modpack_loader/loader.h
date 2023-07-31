@@ -23,6 +23,8 @@ typedef uint32_t ModpackLoaderVersion;
 
 #define MODPACK_LOADER_MODULE_VERSION_ERROR 0xFFFFFFFF
 
+const char *ModpackLoader_GetStatusStr(ModpackLoaderStatus status);
+
 /**
  * This function has to be called before any other function of this lib (except ModpackLoader_GetVersion) can be used.
  *
